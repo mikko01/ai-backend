@@ -14,16 +14,22 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: message }],
+        messages: [
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: message }
+        ],
       }),
     });
 
     const data = await response.json();
 
     return res.status(200).json({
-      reply: data.choices?.[0]?.message?.content || "No reply",
+      reply: data.choices[0].message.content
     });
-  } catch (err) {
-    return res.status(500).json({ error: "AI error" });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message || "AI error"
+    });
   }
 }
