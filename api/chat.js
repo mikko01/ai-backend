@@ -4,31 +4,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body;
-
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        input: message,
-      }),
+    const body = await new Promise((resolve, reject) => {
+      let data = "";
+      req.on("data", chunk => (data += chunk));
+      req.on("end", () => resolve(JSON.parse(data)));
+      req.on("error", err => reject(err));
     });
 
-    const data = await response.json();
+    const { message } = body;
 
-    const reply =
-      data.output_text ||
-      data.output?.[0]?.content?.[0]?.text ||
-      "No reply";
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
 
-    return res.status(200).json({ reply });
+    // رد تجريبي مؤقت (نأكد أن كل شيء شغال)
+    return res.status(200).json({
+      reply: `وصلني سؤالك: ${message}`
+    });
+
   } catch (err) {
     return res.status(500).json({
-      error: err.message,
+      error: err.message
     });
   }
 }
